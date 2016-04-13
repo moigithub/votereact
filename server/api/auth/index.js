@@ -17,7 +17,7 @@ passport.serializeUser(function(user, done) {
 passport.deserializeUser(function(id, done) {
 //    console.log("passport DEserialize ID ", id);
     User.findById(id, function(err, user) {
-        console.log("passport DEserialize user found ", user);
+        //console.log("passport DEserialize user found ", user);
         done(err, user);
     });
 });
@@ -99,13 +99,13 @@ router
   }))
 
 
-.get('/logout', function(req, res) {
+  .get('/logout', isLoggedIn, function(req, res) {
         req.logout();
-        res.redirect('/');
+        res.redirect('/successLogout');
     });
     
     
-/*
+
 // route middleware to make sure a user is logged in
 function isLoggedIn(req, res, next) {
 
@@ -116,7 +116,12 @@ function isLoggedIn(req, res, next) {
     // if they aren't redirect them to the home page
     res.redirect('/');
 }
-*/
+
+module.exports=router;
+module.exports.isLoggedIn= isLoggedIn;
 
 
-module.exports = router;
+
+// export = module.export <-- pointing to the same object.. only module.export will be returned
+//module.exports.router = router;
+//exports.myFunction = function(){...}

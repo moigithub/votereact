@@ -1,17 +1,21 @@
 'use strict';
 /*global localStorage*/
 
-var user={};
+var user = {};  // is stored on client, so not affecting multiple users from diff part of world
 
 module.exports = {
-    login:function(){
+    login:function(cb){
         $.get("/api/users/")
             .done((data)=>{
-                user = data;
+                user = data.twitter;
+                user.userId = data._id;
                 localStorage.token = data._id;
-                localStorage.userName = data.displayName;
-                console.log(data);
+                localStorage.userData = JSON.stringify(user);
+                //localStorage.displayName = data.twitter.displayName;
+               // console.log("auth login",user);
                 //this.setState({user: JSON.stringify(data)});
+                
+                if(cb) cb();
             })
             .fail(function() {
                 console.error( "users/ error getting api/votes data" );
@@ -19,20 +23,23 @@ module.exports = {
             });
         
     },
-    logout:function(){
+    logout:function(cb){
         $.get("/auth/logout")
             .done((data)=>{
                 user={};
                 delete localStorage.token;
-                delete localStorage.userName;
-                console.log("logged out");
+                //delete localStorage.displayName;
+            //    console.log("auth logged out");
+                if(cb) cb();
             })
             .fail(function() {
                 console.error( "auth/logout error getting api/votes data" );
             });        
     },
     getCurrentUser:function(){
+        user = JSON.parse(localStorage.userData);
         return user;
+        // deberia recuperar data from localStorage, to prevent lost when refresh
     },
     isLoggedIn:function(){
         return !!localStorage.token;

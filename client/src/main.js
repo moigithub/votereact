@@ -19,15 +19,40 @@ class SuccessLogin extends React.Component {
     
     componentDidMount(){
             // request user data
-            auth.login();
-            // redirect to /
-            setTimeout( ()=>{browserHistory.push('/')} ,1500);
+            auth.login(function(){
+                // redirect to /
+                setTimeout( ()=>{browserHistory.push('/')} ,1500);
+            });
     }
     
     render(){
         return (
             <div>
                 <h1>You are logged in!</h1>
+                <p>...redirecting to homepage</p>
+            </div>
+            );
+    }
+    
+}
+class SuccessLogout extends React.Component {
+    constructor(props){
+        super(props);
+        
+    }
+    
+    componentDidMount(){
+            // request user data
+            auth.logout(function(){
+                // redirect to /
+                setTimeout( ()=>{browserHistory.push('/')} ,1500);
+            });
+    }
+    
+    render(){
+        return (
+            <div>
+                <h1>Thanks for playing with us!</h1>
                 <p>...redirecting to homepage</p>
             </div>
             );
@@ -45,6 +70,8 @@ class NewPoll extends React.Component {
         ////{createdBy: "me", pollName:'cuatro',pollOptions:['banana','apple','orange'], usersVote:[{uid: 1, pollOption:'aple'}]},
         event.preventDefault();
         
+        //console.log("newPoll postform", this.props);
+        
         var userId = this.props.user.userId;
         
         var name= ReactDOM.findDOMNode(this.refs.name).value;
@@ -53,12 +80,14 @@ class NewPoll extends React.Component {
         //console.log(name,options);
         
         var newData = {"createdBy":userId, "pollName":name, "pollOptions":options, "usersVote":[]};
-        console.log("newdata",newData);
+        //console.log("newdata",newData);
 
         $.post( "/api/votes", newData ,null, "json")
           .done(function( data ) {
             // if success saved.. server send back the data posted
             // so we add it to the state options
+            
+            browserHistory.push('/');
           });
         
 /*
@@ -72,7 +101,7 @@ class NewPoll extends React.Component {
             processData: false  
         });
   */       
-        browserHistory.push('/');
+        
     }
     
     render(){
@@ -124,7 +153,7 @@ class PollList extends React.Component {
                     <ul>{pollList}</ul>
                 </div>
             
-                {this.props.children && React.cloneElement(this.props.children, { getAllData: this.props.getAllData, allData: this.props.allData, selectedPool: this.props.selectedPool, userId:this.props.user })}
+                {this.props.children && React.cloneElement(this.props.children, { getAllData: this.props.getAllData, allData: this.props.allData, selectedPool: this.props.selectedPool, user:this.props.user })}
             </div>
         );
     }
@@ -139,8 +168,9 @@ class MyPollList extends React.Component {
     }
     
     render(){
+        //console.log("props mypolllist", this.props);
         var userId = this.props.user.userId;
-        var allData =this.props.allData.filter((data)=>{console.log(data,userId);return data.createdBy === userId;});
+        var allData =this.props.allData.filter((data)=>{;return data.createdBy === userId;});
         //console.log("mypool data",allData, userId);
         
         var pollList = allData.map(function(poll){
@@ -156,7 +186,7 @@ class MyPollList extends React.Component {
                     <ul>{pollList}</ul>
                 </div>
             
-                {this.props.children && React.cloneElement(this.props.children, { getAllData: this.props.getAllData, allData: this.props.allData, selectedPool: this.props.selectedPool, userId:this.props.user })}
+                {this.props.children && React.cloneElement(this.props.children, { getAllData: this.props.getAllData, allData: this.props.allData, selectedPool: this.props.selectedPool, user:this.props.user })}
             </div>
         );
     }
@@ -203,7 +233,7 @@ class Poll extends React.Component {
         
         pool.usersVote.push({uid: userId, pollOption:selectControl.value});
         
-console.log("polll",pool);
+//console.log("polll",pool);
 
 
 
@@ -278,15 +308,24 @@ class Main extends React.Component {
         this.state = {
             allData:[],
             selectedPool:{},
-            user: {
-                userId:"1"
-            },
+            user: { },
             logged:false
         };
         
     }
     
+    componentDidMount() {
+        console.log("main DidMount isLogged",auth.isLoggedIn());
+        console.log("main DidMount user", auth.getCurrentUser());
+        this.setState({
+            user: auth.getCurrentUser(),
+            logged : auth.isLoggedIn()
+        });
+    }
+    
     componentWillReceiveProps(nextProps) {
+        console.log("main WillRecP isLogged",auth.isLoggedIn());
+        console.log("main WillRecP user", auth.getCurrentUser());
         this.setState({
             user: auth.getCurrentUser(),
             logged : auth.isLoggedIn()
@@ -335,21 +374,21 @@ class Main extends React.Component {
                                 <li><Link to="/Poll/New">New Poll</Link></li>
                             </ul>
                             <ul className="nav navbar-nav navbar-right">
-                                <li>Welcome <span>{this.state.user.twitter.displayName}</span></li>
-                                <li><a href="/auth/logout" class="btn btn-info"><span class="fa fa-times"></span> Logout</a></li>
+                                <li className="navbar-text">Welcome <span>{this.state.user.displayName}</span></li>
+                                <li><a href="/auth/logout" className="btn"><span className="fa fa-times"></span> Logout</a></li>
                             </ul>
                         </div>
                     :
                         <div className="collapse navbar-collapse" id="topmenu">
                             <ul className="nav navbar-nav navbar-right">
-                                <li><a href="/auth/twitter" class="btn btn-info"><span class="fa fa-twitter"></span> Twitter</a></li>
+                                <li><a href="/auth/twitter" className="btn"><span className="fa fa-twitter"></span> Twitter</a></li>
                             </ul>
                         </div>
                     }
                     </nav>
                     
                     <div>
-                        {this.props.children && React.cloneElement(this.props.children, { getAllData: this.getAllData, allData: this.state.allData, selectedPool: this.state.selectedPool, userId:this.state.user })}
+                        {this.props.children && React.cloneElement(this.props.children, { getAllData: this.getAllData, allData: this.state.allData, selectedPool: this.state.selectedPool, user:this.state.user })}
                     </div>
                 </div>
             );
@@ -374,6 +413,7 @@ ReactDOM.render((
         </Route>
 
         <Route path="successLogin" component={SuccessLogin} />
+        <Route path="successLogout" component={SuccessLogout} />
         
         
         <Redirect from="*" to="/" />

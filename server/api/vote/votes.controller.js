@@ -47,7 +47,6 @@ exports.create = function(req, res) {
   // create html client form will have: pollName, pollOptions
   // since is a new poll creating.. :: usersVote = [] empty
   // and attach WHO is the user creating... createdBy = the user logged ID or username(since it should be unique on users collection)
-  req.body.createdBy = "1";
   req.body.usersVote = [];
   
 //  console.log("req.body",req.body);
