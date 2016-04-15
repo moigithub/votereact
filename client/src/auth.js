@@ -37,7 +37,7 @@ module.exports = {
             });        
     },
     getCurrentUser:function(){
-        user = JSON.parse(localStorage.userData);
+        user = JSON.parse(localStorage.userData||"{}");
         return user;
         // deberia recuperar data from localStorage, to prevent lost when refresh
     },

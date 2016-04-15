@@ -1,4 +1,5 @@
 /*global import export */ 
+/*global twttr*/
 'use strict';
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -35,6 +36,7 @@ class SuccessLogin extends React.Component {
     }
     
 }
+
 class SuccessLogout extends React.Component {
     constructor(props){
         super(props);
@@ -60,10 +62,66 @@ class SuccessLogout extends React.Component {
     
 }
 
+class Twitter extends React.Component {
+    constructor(props){
+        super(props);
+        
+    }
+/*   
+
+            
+            <a  target="_blank"
+                className="btn btn-default twittericon" 
+                href={"https://twitter.com/intent/tweet?url="+encodeURIComponent(this.props.url)+"&"+
+                    "text="+encodeURIComponent(this.props.text)}
+                >
+                <i className="fa fa-twitter twittericon" aria-hidden="true"></i>
+                Tweet
+            </a>
+*/
+/*
+    componentDidMount(){
+        
+        twttr.widgets.createShareButton(
+          '',
+          ReactDOM.findDOMNode(this),
+          {
+            text: this.props.text
+          }
+        );
+        
+    }
+    */
+    
+    render(){
+        var bigStr="https://twitter.com/intent/tweet?"+
+            "text="+
+            encodeURIComponent(this.props.text)+
+            "\n"+
+            encodeURIComponent(this.props.url)+
+            "&tw_p=tweetbutton";
+            
+        return (
+            <div>
+            <a href={bigStr}>
+              Tweet
+            </a>
+            </div>
+            );
+    }
+    
+}
+
 class NewPoll extends React.Component {
     constructor(props){
         super(props);
         this.postForm = this.postForm.bind(this);
+        
+        if(!auth.isLoggedIn()){
+            alert("Login first to create new polls");
+            browserHistory.push('/auth/twitter');
+            
+        }
     }
     
     postForm(event){
@@ -88,8 +146,12 @@ class NewPoll extends React.Component {
             // so we add it to the state options
             
             browserHistory.push('/');
-          });
-        
+          })
+         .fail(function() {
+                console.error( "error getting api/votes data" );
+                alert("Must loggin first.");
+            });
+
 /*
         $.ajax({
             url:  "/api/votes",
@@ -119,7 +181,7 @@ class NewPoll extends React.Component {
                         <div className="form-group">
                 			<label htmlFor="opts" className="control-label">Options</label>
                 			<div>(enter 1 option per line)</div>
-                			<textarea id="opts" ref="options" className="form-control" name="options" required/>
+                			<textarea id="opts" ref="options" className="form-control" rows="6" name="options" required/>
                         </div>
 
             			<button type="submit" className="btn btn-success">Submit</button>
@@ -143,7 +205,7 @@ class PollList extends React.Component {
         var allData =this.props.allData;
         //console.log(allData);
         var pollList = allData.map(function(poll){
-            return <li className = "list-group-item" key={poll._id}><Link to={{pathname:'/Poll/'+poll.pollName, state: poll}}>{poll.pollName}</Link></li>;
+            return <li className = "list-group-item" key={poll._id}><Link to={{pathname:'/Poll/'+encodeURIComponent(poll.pollName), state: poll}}>{poll.pollName}</Link></li>;
         });
         return (
             <div className="container-fluid">
@@ -160,23 +222,63 @@ class PollList extends React.Component {
 }
 
 class MyPollList extends React.Component {
+    //TODO. add delete My pool option
+    
     //{createdBy: "me", pollName:'cuatro',pollOptions:['banana','apple','orange'], usersVote:{uid: 1, pollOption:'aple'}},
     constructor(props){
         super(props);
         
+        this.deletePoll = this.deletePoll.bind(this);
+        
         this.props.getAllData();
+    }
+    
+    deletePoll(poll){
+        console.log("delete",poll);
+
+        $.ajax({
+            url: "/api/votes/"+poll._id,
+            type: 'DELETE',
+//            success: callback,
+//            data: data,
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            cache : false,
+            processData: false  
+          })
+          .done(()=>{
+              // redirect to refresh/remove deleted elements 
+                this.props.getAllData();
+                browserHistory.push('/Poll/Me');
+            })
+            .fail(function() {
+                console.error( "error getting api/votes data" );
+                alert("Must loggin first.");
+            });
+        
     }
     
     render(){
         //console.log("props mypolllist", this.props);
         var userId = this.props.user.userId;
         var allData =this.props.allData.filter((data)=>{;return data.createdBy === userId;});
-        //console.log("mypool data",allData, userId);
+        console.log("mypool data",allData, userId);
         
         var pollList = allData.map(function(poll){
-            return <li className = "list-group-item" key={poll._id}><Link to={{pathname:'/Poll/Me/'+poll.pollName, state: poll}}>{poll.pollName}</Link></li>;
+            return ( 
+                <li className = "list-group-item" key={poll._id}>
+                    <Link to={{pathname:'/Poll/Me/'+encodeURIComponent(poll.pollName), state: poll}}>{poll.pollName} 
+                    {   auth.isLoggedIn() && 
+                         <button className="btn btn-danger btn-xs pull-right" onClick={this.deletePoll.bind(null,poll)}>
+                             <span className="fa fa-times"></span> Delete
+                         </button>
+                        
+                    }
+                    </Link>
+                </li>
+            );
             
-        });
+        }.bind(this));
         
         return (
             <div className="container-fluid">
@@ -201,6 +303,26 @@ class Poll extends React.Component {
     constructor(props){
         super(props);
         this.handleSubmit = this.handleSubmit.bind(this);
+        this.getDataByName = this.getDataByName.bind(this);
+        
+        console.log("poll constructor", this.props);
+        
+  /*      if(this.props.location.state){
+            this.state = {
+                pollData : this.props.location.state
+            };
+        } else {
+*/            
+            this.state = {
+                pollData : { pollName:"",
+                            createdBy:"",
+                            pollOptions:[],
+                }
+            };
+
+        //}
+
+        //this.props.getAllData();
     }
     
     /// [{op1:count},{"a":3},{"b":12}]
@@ -218,11 +340,68 @@ class Poll extends React.Component {
         .filter(poll=>poll.count>0)
     }
     
+    // getInitialState(){} no funciona con ES6 syntax
+
+    componentDidMount(){
+        console.log("poll did mount");
+        
+        this.getDataByName(this.props.params.pollName, function(data){
+            this.setState({pollData : data});
+        }.bind(this));
+
+    }
+
+
+    componentWillReceiveProps(nextProps) {
+        //console.log("poll WillRecP curr ",this.props);
+        console.log("poll WillRecP next",nextProps.params.pollName, nextProps.location.state);
+        
+        if(nextProps.location.state) {
+            this.setState({pollData: nextProps.location.state});
+        } else {
+            this.getDataByName(nextProps.params.pollName, function(data){
+                this.setState({pollData : data});
+            }.bind(this));
+        }
+
+    }
+ 
+/*    
+    componentWillUpdate(){
+        console.log("poll will Update", this.props);
+    }
+  
+    componentWillMount(){
+        console.log("poll willMount", this.props);
+        // TODO
+        // if have no data.. then it was direct linked on browser
+        // load data from server
+    }
+*/    
+    getDataByName(name, cb){
+        // SEND http request to server API
+        console.log("gettin data by name",name, "databy name loca.state",this.props.location.state);
+        if(this.props.location.state){   // if have data stored on <Link>
+            return cb(this.props.location.state);
+        } else {        // no Link used, direct linking
+            var URL = "/api/votes/pollname/"+name;
+            $.get(URL)
+                .done((data)=>{
+                    console.log("poll data",data[0]);
+                    cb(data[0]);
+                })
+                .fail(function() {
+                    console.error( "error getting api/votes data" );
+                });
+        }
+            
+    }
+    
     handleSubmit(){
         var selectControl= this.refs.option;
         //console.log("optoin selected", selectControl,selectControl.value, "pollData", this.props.location.state);
         
-        var pool = this.props.location.state;
+        var pool = this.state.pollData;
         
         var userId=this.props.user.userId;
         
@@ -258,6 +437,7 @@ class Poll extends React.Component {
             })
             .fail(function() {
                 console.error( "error getting api/votes data" );
+                alert("Must loggin first.");
             });
 
         
@@ -265,17 +445,16 @@ class Poll extends React.Component {
     
     render(){
         
-        let pollData = this.props.location.state;
+        let pollData = this.state.pollData;
         
-        
-        //console.log("poll render",this.props.params);
+        console.log("poll render");
+       // console.log("poll render",this.props.params, "\nrender polldata",pollData);
         var options = pollData.pollOptions.map((opt,i)=>{return <option value={opt} key={"opt"+i}>{opt}</option>});
         var data = this.calcVotes(pollData);
 
-        
+        //+  window.location.hostname+"/Poll/"+pollData.pollName
          //   console.log("poll",pollData);
         return (
-            
                     <div className="row">
                         <div className="col-md-5">
                             <h1 className="text-center">{pollData.pollName}</h1>
@@ -286,7 +465,8 @@ class Poll extends React.Component {
                                 {options}
                             </select>
                             <button  className="btn btn-primary btn-block" onClick={this.handleSubmit}>Submit</button>
-                            
+                            <Twitter text={"FCC Vote poll | "+pollData.pollName+"\nWhats your favorite option?\n"+pollData.pollOptions.join(", ")+"\n" } 
+                                url={window.location.origin+"/Poll/"+encodeURIComponent(pollData.pollName)} />
                         </div>
                         <div className="col-md-7">
                             <PieChart width={300} height={300} data={data}/>
@@ -315,8 +495,6 @@ class Main extends React.Component {
     }
     
     componentDidMount() {
-        console.log("main DidMount isLogged",auth.isLoggedIn());
-        console.log("main DidMount user", auth.getCurrentUser());
         this.setState({
             user: auth.getCurrentUser(),
             logged : auth.isLoggedIn()
@@ -324,8 +502,6 @@ class Main extends React.Component {
     }
     
     componentWillReceiveProps(nextProps) {
-        console.log("main WillRecP isLogged",auth.isLoggedIn());
-        console.log("main WillRecP user", auth.getCurrentUser());
         this.setState({
             user: auth.getCurrentUser(),
             logged : auth.isLoggedIn()
@@ -338,7 +514,7 @@ class Main extends React.Component {
     
     getAllData(){
         // SEND http request to server API
-        
+        console.log("gettin all data");
         var URL = "/api/votes";
         $.get(URL)
             .done((data)=>{
@@ -396,6 +572,28 @@ class Main extends React.Component {
 }
 //
 
+
+
+
+////////////////////////////////////////////
+function requireAuth(nextState, replace) {
+    console.log(nextState.location);
+  if (!auth.isLoggedIn()) {
+      /*
+    replace({
+      pathname: '/auth/twitter' // only work if auth/twiter if part of <Route> list
+    })
+    */
+    window.location = "/auth/twitter";
+    
+    
+    //router.replace({ pathname, query, state }) // new "location descriptor"
+     
+  }
+}
+
+
+
 //ReactDOM.render(<Main/>, document.getElementById("app"));
 
 ReactDOM.render((
@@ -404,7 +602,7 @@ ReactDOM.render((
     
         <IndexRoute component={PollList} />
 
-        <Route path="Poll/New" component={NewPoll} />
+        <Route path="Poll/New" component={NewPoll}  onEnter={requireAuth} />
         <Route path="Poll/Me" component={MyPollList} >
             <Route path=":pollName" component={Poll} />
         </Route>

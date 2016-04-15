@@ -90,6 +90,7 @@ exports.update = function(req, res) {
 
 // Deletes a votes from the DB.
 exports.destroy = function(req, res) {
+  //console.log("server delete", req.params);
   Votes.findById(req.params.id, function (err, votes) {
     if(err) { return handleError(res, err); }
     if(!votes) { return res.status(404).send('Not Found'); }
