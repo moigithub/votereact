@@ -304,6 +304,7 @@ class Poll extends React.Component {
         super(props);
         this.handleSubmit = this.handleSubmit.bind(this);
         this.getDataByName = this.getDataByName.bind(this);
+        this.checkOption = this.checkOption.bind(this);
         
         console.log("poll constructor", this.props);
         
@@ -317,7 +318,8 @@ class Poll extends React.Component {
                 pollData : { pollName:"",
                             createdBy:"",
                             pollOptions:[],
-                }
+                }, 
+                customOption: false
             };
 
         //}
@@ -401,16 +403,28 @@ class Poll extends React.Component {
         var selectControl= this.refs.option;
         //console.log("optoin selected", selectControl,selectControl.value, "pollData", this.props.location.state);
         
-        var pool = this.state.pollData;
+        var poll = this.state.pollData;
         
         var userId=this.props.user.userId;
         
         //console.log("uid",userId);
         
-        // remove user voted. and add again.. to prevent user vote more than once
-        pool.usersVote=pool.usersVote.filter((vote)=>{return vote.uid!==userId});
+        var option = selectControl.value;
+        if(selectControl.value=="Custom option"){
+            option = this.refs.customOption.value;
+            
+            
+            
+            //push option to pollOptions array
+            //check to prevent duplicates
+            if(poll.pollOptions.indexOf(option)===-1)
+                poll.pollOptions.push(option);
+        }
         
-        pool.usersVote.push({uid: userId, pollOption:selectControl.value});
+        // remove user voted. and add again.. to prevent user vote more than once
+        poll.usersVote=poll.usersVote.filter((vote)=>{return vote.uid!==userId});
+        
+        poll.usersVote.push({uid: userId, pollOption:option});
         
 //console.log("polll",pool);
 
@@ -418,12 +432,12 @@ class Poll extends React.Component {
 
 
 // save data on server
-        var URL = "/api/votes/"+pool._id;
+        var URL = "/api/votes/"+poll._id;
         $.ajax({
                 url:URL,
                 //method:"PUT",
                 type:"PUT",
-                data: JSON.stringify(pool),
+                data: JSON.stringify(poll),
                 contentType: "application/json; charset=utf-8",
                 dataType: "json",
                 cache : false,
@@ -443,13 +457,35 @@ class Poll extends React.Component {
         
     }
     
+    checkOption(event){
+        var option = event.target.value;
+        console.log("option selected",option);
+        if(option ==="Custom option"){
+            /// show the component
+            console.log(this.refs.customOption);
+            if(!this.state.customOption)
+                this.setState({customOption:true});
+        } else {
+            if(this.state.customOption)
+                this.setState({customOption:false});
+        }
+    }
+    
     render(){
         
         let pollData = this.state.pollData;
         
         console.log("poll render");
        // console.log("poll render",this.props.params, "\nrender polldata",pollData);
-        var options = pollData.pollOptions.map((opt,i)=>{return <option value={opt} key={"opt"+i}>{opt}</option>});
+        var options = pollData.pollOptions.map((opt,i)=>{return <option value={opt} key={"opt"+i} selected={i === 0} >{opt}</option>});
+        
+        //User Story: As an authenticated user, if I don't like the options on a poll, I can create a new option.
+        if(auth.isLoggedIn()){
+            //alert("adding custom");
+            options.push(<option value='Custom option' key='custom1'>Custom option</option>);
+        }
+        
+        
         var data = this.calcVotes(pollData);
 
         //+  window.location.hostname+"/Poll/"+pollData.pollName
@@ -461,9 +497,13 @@ class Poll extends React.Component {
                             <div className="text-center"><span>By </span> {pollData.createdBy}</div>
                             <p>Pick an option:</p>
                             
-                            <select className="pollOptions form-control" ref="option">
+                            <select className="pollOptions form-control" ref="option" onChange={this.checkOption}>
                                 {options}
                             </select>
+                            {  this.state.customOption &&
+                                   <input type="text" className="custom form-control" placeholder="enter your custom option here" ref="customOption"/>
+                            }
+                            
                             <button  className="btn btn-primary btn-block" onClick={this.handleSubmit}>Submit</button>
                             <Twitter text={"FCC Vote poll | "+pollData.pollName+"\nWhats your favorite option?\n"+pollData.pollOptions.join(", ")+"\n" } 
                                 url={window.location.origin+"/Poll/"+encodeURIComponent(pollData.pollName)} />
