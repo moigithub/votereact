@@ -300,6 +300,7 @@ class MyPollList extends React.Component {
 //////////**********////////////////
 
 class Poll extends React.Component {
+    
     constructor(props){
         super(props);
         this.handleSubmit = this.handleSubmit.bind(this);
@@ -327,6 +328,8 @@ class Poll extends React.Component {
         //this.props.getAllData();
     }
     
+    optionMsg() {return "Click here to select an Option";}
+
     /// [{op1:count},{"a":3},{"b":12}]
     calcVotes(data){
       
@@ -403,6 +406,11 @@ class Poll extends React.Component {
         var selectControl= this.refs.option;
         //console.log("optoin selected", selectControl,selectControl.value, "pollData", this.props.location.state);
         
+        if(selectControl.value === this.optionMsg()){
+            alert("Must select a valid option.");
+            return;
+        }
+        
         var poll = this.state.pollData;
         
         var userId=this.props.user.userId;
@@ -413,12 +421,14 @@ class Poll extends React.Component {
         if(selectControl.value=="Custom option"){
             option = this.refs.customOption.value;
             
-            
+            alert(option);
             
             //push option to pollOptions array
             //check to prevent duplicates
-            if(poll.pollOptions.indexOf(option)===-1)
+            if(poll.pollOptions.indexOf(option)===-1){
+                console.log("added new option", option);
                 poll.pollOptions.push(option);
+            }
         }
         
         // remove user voted. and add again.. to prevent user vote more than once
@@ -474,10 +484,12 @@ class Poll extends React.Component {
     render(){
         
         let pollData = this.state.pollData;
-        
+        // style={{marginRight: spacing + 'em'}}
         console.log("poll render");
        // console.log("poll render",this.props.params, "\nrender polldata",pollData);
-        var options = pollData.pollOptions.map((opt,i)=>{return <option value={opt} key={"opt"+i} selected={i === 0} >{opt}</option>});
+        var options = pollData.pollOptions.map((opt,i)=>{return <option value={opt} key={"opt"+i} >{opt}</option>});
+        
+        options.push(<option value={this.optionMsg()} key={"optz"} disabled="true" style={{display:"none"}}>{this.optionMsg()}</option>);
         
         //User Story: As an authenticated user, if I don't like the options on a poll, I can create a new option.
         if(auth.isLoggedIn()){
@@ -497,7 +509,7 @@ class Poll extends React.Component {
                             <div className="text-center"><span>By </span> {pollData.createdBy}</div>
                             <p>Pick an option:</p>
                             
-                            <select className="pollOptions form-control" ref="option" onChange={this.checkOption}>
+                            <select className="pollOptions form-control" ref="option" defaultValue={this.optionMsg()} onChange={this.checkOption} required>
                                 {options}
                             </select>
                             {  this.state.customOption &&
@@ -664,3 +676,4 @@ ReactDOM.render((
 
 //https://github.com/reactjs/react-router-tutorial/tree/master/lessons/02-rendering-a-route
 /// https://medium.com/@sxywu/on-d3-react-and-a-little-bit-of-flux-88a226f328f3#.7afmsdtoh
+//http://matt-harrison.com/building-a-complex-web-component-with-facebooks-react-library/
