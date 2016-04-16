@@ -102,11 +102,9 @@ class Twitter extends React.Component {
             "&tw_p=tweetbutton";
             
         return (
-            <div>
-            <a href={bigStr}>
-              Tweet
+            <a href={bigStr} className="btn btn-info form-control">
+             <i className="fa fa-twitter twittericon" aria-hidden="true"></i> Tweet
             </a>
-            </div>
             );
     }
     
@@ -234,7 +232,7 @@ class MyPollList extends React.Component {
     }
     
     deletePoll(poll){
-        console.log("delete",poll);
+        //console.log("delete",poll);
 
         $.ajax({
             url: "/api/votes/"+poll._id,
@@ -262,7 +260,7 @@ class MyPollList extends React.Component {
         //console.log("props mypolllist", this.props);
         var userId = this.props.user.userId;
         var allData =this.props.allData.filter((data)=>{;return data.createdBy === userId;});
-        console.log("mypool data",allData, userId);
+        //console.log("mypool data",allData, userId);
         
         var pollList = allData.map(function(poll){
             return ( 
@@ -307,7 +305,7 @@ class Poll extends React.Component {
         this.getDataByName = this.getDataByName.bind(this);
         this.checkOption = this.checkOption.bind(this);
         
-        console.log("poll constructor", this.props);
+        //console.log("poll constructor", this.props);
         
   /*      if(this.props.location.state){
             this.state = {
@@ -320,7 +318,8 @@ class Poll extends React.Component {
                             createdBy:"",
                             pollOptions:[],
                 }, 
-                customOption: false
+                customOption: false,
+                selectValue:""
             };
 
         //}
@@ -348,7 +347,8 @@ class Poll extends React.Component {
     // getInitialState(){} no funciona con ES6 syntax
 
     componentDidMount(){
-        console.log("poll did mount");
+        //console.log("poll did mount");
+        this.setState({selectValue:this.optionMsg()});   // make the "select an option" msg appear
         
         this.getDataByName(this.props.params.pollName, function(data){
             this.setState({pollData : data});
@@ -359,7 +359,9 @@ class Poll extends React.Component {
 
     componentWillReceiveProps(nextProps) {
         //console.log("poll WillRecP curr ",this.props);
-        console.log("poll WillRecP next",nextProps.params.pollName, nextProps.location.state);
+        //console.log("poll WillRecP next",nextProps.params.pollName, nextProps.location.state);
+        
+        this.setState({selectValue:this.optionMsg()});  // make the "select an option" msg appear
         
         if(nextProps.location.state) {
             this.setState({pollData: nextProps.location.state});
@@ -371,28 +373,17 @@ class Poll extends React.Component {
 
     }
  
-/*    
-    componentWillUpdate(){
-        console.log("poll will Update", this.props);
-    }
-  
-    componentWillMount(){
-        console.log("poll willMount", this.props);
-        // TODO
-        // if have no data.. then it was direct linked on browser
-        // load data from server
-    }
-*/    
+   
     getDataByName(name, cb){
         // SEND http request to server API
-        console.log("gettin data by name",name, "databy name loca.state",this.props.location.state);
+       // console.log("gettin data by name",name, "databy name loca.state",this.props.location.state);
         if(this.props.location.state){   // if have data stored on <Link>
             return cb(this.props.location.state);
         } else {        // no Link used, direct linking
             var URL = "/api/votes/pollname/"+name;
             $.get(URL)
                 .done((data)=>{
-                    console.log("poll data",data[0]);
+                   // console.log("poll data",data[0]);
                     cb(data[0]);
                 })
                 .fail(function() {
@@ -426,7 +417,7 @@ class Poll extends React.Component {
             //push option to pollOptions array
             //check to prevent duplicates
             if(poll.pollOptions.indexOf(option)===-1){
-                console.log("added new option", option);
+               // console.log("added new option", option);
                 poll.pollOptions.push(option);
             }
         }
@@ -467,12 +458,18 @@ class Poll extends React.Component {
         
     }
     
+    
+    
     checkOption(event){
         var option = event.target.value;
-        console.log("option selected",option);
+        
+        this.setState({selectValue: option});
+        
+        
+        //console.log("option selected",option);
         if(option ==="Custom option"){
             /// show the component
-            console.log(this.refs.customOption);
+            //console.log(this.refs.customOption);
             if(!this.state.customOption)
                 this.setState({customOption:true});
         } else {
@@ -485,7 +482,7 @@ class Poll extends React.Component {
         
         let pollData = this.state.pollData;
         // style={{marginRight: spacing + 'em'}}
-        console.log("poll render");
+        //console.log("poll render");
        // console.log("poll render",this.props.params, "\nrender polldata",pollData);
         var options = pollData.pollOptions.map((opt,i)=>{return <option value={opt} key={"opt"+i} >{opt}</option>});
         
@@ -509,7 +506,7 @@ class Poll extends React.Component {
                             <div className="text-center"><span>By </span> {pollData.createdBy}</div>
                             <p>Pick an option:</p>
                             
-                            <select className="pollOptions form-control" ref="option" defaultValue={this.optionMsg()} onChange={this.checkOption} required>
+                            <select className="pollOptions form-control" ref="option" value={this.state.selectValue} onChange={this.checkOption} required>
                                 {options}
                             </select>
                             {  this.state.customOption &&
@@ -566,7 +563,7 @@ class Main extends React.Component {
     
     getAllData(){
         // SEND http request to server API
-        console.log("gettin all data");
+        //console.log("gettin all data");
         var URL = "/api/votes";
         $.get(URL)
             .done((data)=>{
@@ -629,7 +626,7 @@ class Main extends React.Component {
 
 ////////////////////////////////////////////
 function requireAuth(nextState, replace) {
-    console.log(nextState.location);
+    //console.log(nextState.location);
   if (!auth.isLoggedIn()) {
       /*
     replace({
