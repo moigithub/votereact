@@ -47,7 +47,7 @@ passport.use(new TwitterStrategy({
     
                 // if the user is found then log them in
                 if (user) {
-                    console.log("user exist");
+                    //console.log("user exist");
                     return done(null, user); // user found, return that user
                 } else {
                     

@@ -606,6 +606,7 @@ class Main extends React.Component {
                     :
                         <div className="collapse navbar-collapse" id="topmenu">
                             <ul className="nav navbar-nav navbar-right">
+                                <li className="navbar-text">Login with</li>
                                 <li><a href="/auth/twitter" className="btn"><span className="fa fa-twitter"></span> Twitter</a></li>
                             </ul>
                         </div>

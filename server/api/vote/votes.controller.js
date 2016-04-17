@@ -62,18 +62,18 @@ exports.create = function(req, res) {
 
 // Updates an existing votes in the DB.
 exports.update = function(req, res) {
-  console.log("votes update", req.body);
+//  console.log("votes update", req.body);
   
   
   if(req.body._id) { delete req.body._id; }
   Votes.findById(req.params.id, function (err, votes) {
-    if (err) { console.log("error",err);return handleError(res, err); }
-    if(!votes) { console.log("no votes found");return res.status(404).send('Not Found'); }
+    if (err) { return handleError(res, err); }
+    if(!votes) { return res.status(404).send('Not Found'); }
     //var updated = _.merge(votes, req.body);
     //var updated = _.extend(votes, req.body);
     //////////////////////
     //console.log("server update, after _merge", updated);
-    console.log("find votes",votes);
+    //console.log("find votes",votes);
     /*
     votes.createdBy = req.body["createdBy"];
     votes.pollName = req.body["pollName"];
