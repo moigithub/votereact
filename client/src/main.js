@@ -128,7 +128,8 @@ class NewPoll extends React.Component {
         
         //console.log("newPoll postform", this.props);
         
-        var userId = this.props.user.userId;
+        var userId = this.props.user.displayName;
+        //console.log("new poll user", this.props.user);
         
         var name= ReactDOM.findDOMNode(this.refs.name).value;
         var options= ReactDOM.findDOMNode(this.refs.options).value;
@@ -258,7 +259,7 @@ class MyPollList extends React.Component {
     
     render(){
         //console.log("props mypolllist", this.props);
-        var userId = this.props.user.userId;
+        var userId = this.props.user.displayName;
         var allData =this.props.allData.filter((data)=>{;return data.createdBy === userId;});
         //console.log("mypool data",allData, userId);
         
@@ -406,7 +407,7 @@ class Poll extends React.Component {
         
         var userId=this.props.user.userId;
         
-        //console.log("uid",userId);
+        //console.log("vote poll user",this.props.user);
         
         var option = selectControl.value;
         if(selectControl.value=="Custom option"){

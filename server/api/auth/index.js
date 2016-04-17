@@ -64,7 +64,7 @@ passport.use(new TwitterStrategy({
                     newUser.save(function(err) {
                         if (err)
                             throw err;
-                        console.log("user created");
+                        //console.log("user created");
                         return done(null, newUser);
                     });
                 }
