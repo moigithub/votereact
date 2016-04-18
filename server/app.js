@@ -17,7 +17,7 @@ var config = {
   port: process.env.PORT || 9000,
 
   // Server IP
-  ip: process.env.IP || 'localhost',
+  ip: process.env.IP || '0.0.0.0', // no localhost or heroku fails
   
   // MongoDB connection options
   mongo: {
