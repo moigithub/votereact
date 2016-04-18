@@ -437,7 +437,7 @@ class Poll extends React.Component {
         if(selectControl.value=="Custom option"){
             option = this.refs.customOption.value;
             
-            alert(option);
+            //alert(option);
             
             //push option to pollOptions array
             //check to prevent duplicates
