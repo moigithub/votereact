@@ -143,7 +143,8 @@ class NewPoll extends React.Component {
             return;
         }
         //options should have at least 1 option
-        if(options.length<=1){
+        if(options.length<1){
+            //console.log(options);
             alert("should have 1 option at least");
             return;
         }
