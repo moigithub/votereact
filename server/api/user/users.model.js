@@ -27,4 +27,4 @@ UsersSchema.methods.validPassword = function(password) {
 };
 
 
-module.exports = mongoose.model('User', UsersSchema);
+module.exports = mongoose.model('Userreact', UsersSchema);

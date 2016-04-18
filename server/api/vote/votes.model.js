@@ -14,7 +14,7 @@ var VotesSchema = new Schema({
   	//placeholders: Array
 });
 
-module.exports = mongoose.model('Votes', VotesSchema);
+module.exports = mongoose.model('Votesreact', VotesSchema);
 
 /*
 var childSchema = new Schema({ name: 'string' });
