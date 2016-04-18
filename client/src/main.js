@@ -149,11 +149,14 @@ class NewPoll extends React.Component {
             return;
         }
         // options should be unique
-        var noDupes = options.filter(function(item, index, arr){
-            return arr.indexOf(item) == arr.lastIndexOf(item);
-        });
+        var noDupes = options.reduce(function(uniqueArr, elem, index, arr){
+            if(uniqueArr.indexOf(elem)===-1){
+                uniqueArr.push(elem);
+            }
+            return uniqueArr;
+        },[]);
         
-        console.log("nodupes",noDupes);
+        //console.log("nodupes",noDupes);
         if (noDupes.length !== options.length){
             alert("found some duplicated options names... Cleaned!.");
             options = noDupes;
