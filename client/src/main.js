@@ -134,6 +134,30 @@ class NewPoll extends React.Component {
         var name= ReactDOM.findDOMNode(this.refs.name).value;
         var options= ReactDOM.findDOMNode(this.refs.options).value;
         options = options.split("\n");
+        
+        
+        ///TODO
+        // poll should have a name
+        if(name.trim().length===0){
+            alert("should have a title.")
+            return;
+        }
+        //options should have at least 1 option
+        if(options.length<=1){
+            alert("should have 1 option at least");
+            return;
+        }
+        // options should be unique
+        var noDupes = options.filter(function(item, index, arr){
+            return arr.indexOf(item) == arr.lastIndexOf(item);
+        });
+        
+        console.log("nodupes",noDupes);
+        if (noDupes.length !== options.length){
+            alert("found some duplicated options names... Cleaned!.");
+            options = noDupes;
+        }
+        
         //console.log(name,options);
         
         var newData = {"createdBy":userId, "pollName":name, "pollOptions":options, "usersVote":[]};
@@ -420,6 +444,9 @@ class Poll extends React.Component {
             if(poll.pollOptions.indexOf(option)===-1){
                // console.log("added new option", option);
                 poll.pollOptions.push(option);
+            } else {
+                alert(option+" is already on the options list.");
+                
             }
         }
         
